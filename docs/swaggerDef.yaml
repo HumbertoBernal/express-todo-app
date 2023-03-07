@@ -1,0 +1,157 @@
+swagger: '2.0'
+info:
+  title: Todo API
+  description: RESTful API for managing todo items
+  version: 1.0.0
+basePath: /
+
+paths:
+  /todos:
+    get:
+      summary: Get all todos
+      produces:
+        - application/json
+      responses:
+        200:
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Todo'
+    post:
+      summary: Create a specific todo
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: todo
+          in: body
+          description: Fields to create a todo object
+          required: true
+          schema:
+            $ref: '#/definitions/TodoPost'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/Todo'
+        400:
+          description: Bad request
+  /todos/{id}:
+    get:
+      summary: Get a specific todo
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: ID of the todo to retrieve
+          required: true
+          type: string
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/Todo'
+        404:
+          description: Not found
+    patch:
+      summary: Update a specific todo
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: ID of the todo to update
+          required: true
+          type: string
+        - name: todo
+          in: body
+          description: Updated todo object
+          required: true
+          schema:
+            $ref: '#/definitions/TodoUpdate'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/Todo'
+        400:
+          description: Bad request
+        404:
+          description: Not found
+    delete:
+      summary: Delete a specific todo
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: ID of the todo to delete
+          required: true
+          type: string
+      responses:
+        200:
+          description: OK
+        404:
+          description: Not found
+
+definitions:
+  Todo:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      description:
+        type: string
+      updated_at:
+        type: string
+        format: date-time
+      created_at:
+        type: string
+        format: date-time
+    required:
+      - id
+      - name
+      - description
+      - updated_at
+      - created_at
+  TodoPost:
+    type: object
+    properties:
+      name:
+        type: string
+      description:
+        type: string
+    required:
+      - name
+      - description
+  TodoPatch:
+    type: object
+    properties:
+      name:
+        type: string
+      description:
+        type: string
+    anyOf:
+      - required:
+        - name
+      - required:
+        - description
+  TodoUpdate:
+    type: object
+    properties:
+      name:
+        type: string
+      description:
+        type: string
+    anyOf:
+      - required:
+        - name
+      - required:
+        - description
