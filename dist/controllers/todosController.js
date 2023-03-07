@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteTodo = exports.updateTodo = exports.addTodo = exports.getSpecificTodo = exports.getAllTodos = void 0;
 const uuid_1 = require("uuid");
 const todo_1 = require("../model/todo");
+const validation_1 = require("../utils/validation");
 const getAllTodos = (req, res) => {
     const allTodos = Array.from(todo_1.todos.values());
     res.json(allTodos);
@@ -27,8 +28,11 @@ const getSpecificTodo = (req, res) => {
 };
 exports.getSpecificTodo = getSpecificTodo;
 const addTodo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(req.body);
-    const { name, description } = req.body;
+    const { error, value } = validation_1.validateSchemas.createTodo.validate(req.body);
+    if (error) {
+        return res.status(400).json({ error: error.details, message: error.message });
+    }
+    const { name, description } = value;
     if (!req.body.name || !req.body.description) {
         return res.status(400).json({ message: 'Invalid request' });
     }
@@ -40,13 +44,17 @@ const addTodo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 exports.addTodo = addTodo;
 const updateTodo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
-    const { name, description } = req.body;
-    if (!name && !description) {
-        return res.status(400).json({ message: 'Missing body parameters' });
-    }
     const updatedTodo = todo_1.todos.get(id);
     if (!updatedTodo) {
         return res.status(404).json({ message: 'Todo not found' });
+    }
+    const { error, value } = validation_1.validateSchemas.updateTodo.validate(req.body);
+    if (error) {
+        return res.status(400).json({ error: error.details, message: error.message });
+    }
+    const { name, description } = value;
+    if (!name && !description) {
+        return res.status(400).json({ message: 'Missing body parameters' });
     }
     if (name) {
         updatedTodo.name = name;

@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { todos } from '../model/todo';
-import { TodoItem } from '../model/types';
+import { TodoPatch, TodoPost } from '../model/types';
+import { validateSchemas } from '../utils/validation';
 
 export const getAllTodos = (req: Request, res: Response) => {
     const allTodos = Array.from(todos.values());
@@ -18,8 +19,13 @@ export const getSpecificTodo = (req: Request, res: Response) => {
 }
 
 export const addTodo = async (req: Request, res: Response) => {
-    console.log(req.body)
-    const { name, description } = req.body as TodoItem;
+    const { error, value } = validateSchemas.createTodo.validate(req.body);
+
+    if (error) {
+        return res.status(400).json({ error: error.details, message: error.message });
+    }
+
+    const { name, description } = value as TodoPost;
     if (!req.body.name || !req.body.description) {
         return res.status(400).json({ message: 'Invalid request' });
     }
@@ -31,13 +37,21 @@ export const addTodo = async (req: Request, res: Response) => {
 
 export const updateTodo = async (req: Request, res: Response) => {
     const id = req.params.id;
-    const { name, description } = req.body as TodoItem;
-    if (!name && !description) {
-        return res.status(400).json({ message: 'Missing body parameters' });
-    }
+    
     const updatedTodo = todos.get(id);
     if (!updatedTodo) {
         return res.status(404).json({ message: 'Todo not found' });
+    }
+
+    const { error, value } = validateSchemas.updateTodo.validate(req.body);
+
+    if (error) {
+        return res.status(400).json({ error: error.details, message: error.message });
+    }
+
+    const { name, description } = value as TodoPatch;
+    if (!name && !description) {
+        return res.status(400).json({ message: 'Missing body parameters' });
     }
     if (name) {
         updatedTodo.name = name;
@@ -55,8 +69,8 @@ export const deleteTodo = async (req: Request, res: Response) => {
     const id = req.params.id;
     const todo = todos.get(id);
     if (!todo) {
-        return res.status(404).json({message: 'Todo not found'});
+        return res.status(404).json({ message: 'Todo not found' });
     }
     todos.delete(id);
-    res.json({message: 'Todo deleted successfully'});
+    res.json({ message: 'Todo deleted successfully' });
 }
